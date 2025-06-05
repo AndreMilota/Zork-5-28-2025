@@ -31,17 +31,25 @@ graph_builder = StateGraph(GameState)
 # ----------------------------- nodes -----------------------------
 
 def summarize_room(state: GameState):
+    """Return a short narration of the current room."""
     room = ROOMS[state["current_room"]]
-    prompt = f"You are looking at {room['text']} Summarize it for the player."
-    resp = core.llm.invoke([{"role": "user", "content": prompt}])
+    prompt = [
+        {
+            "role": "system",
+            "content": (
+                "You are a text adventure narrator. Describe the room in one "
+                "short sentence without any extra commentary."
+            ),
+        },
+        {"role": "user", "content": room["text"]},
+    ]
+    resp = core.llm.invoke(prompt)
     return {"messages": [resp]}
 
 
 def ask_for_action(state: GameState):
-    resp = core.llm.invoke(
-        state["messages"] + [{"role": "user", "content": "What do you want to do?"}]
-    )
-    return {"messages": [resp]}
+    """Prompt the player for their next action."""
+    return {"messages": [{"role": "assistant", "content": "What do you do?"}]}
 
 
 @tool
@@ -59,7 +67,11 @@ llm_with_tools = core.llm.bind_tools([move_room])
 
 def interpret_action(state: GameState):
     """Use the LLM to respond to the player and call tools if needed."""
-    resp = llm_with_tools.invoke(state["messages"])
+    messages = [
+        {"role": "system", "content": "You control the world. Respond concisely."},
+        *state["messages"],
+    ]
+    resp = llm_with_tools.invoke(messages)
     return {"messages": [resp]}
 
 
