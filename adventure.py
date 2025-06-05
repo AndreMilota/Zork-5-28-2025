@@ -75,11 +75,11 @@ llm_with_tools = core.llm.bind_tools([move_room])
 
 def interpret_action(state: GameState):
     """Use the LLM to respond to the player and call tools if needed."""
-    messages = [
-        {"role": "system", "content": "You control the world. Respond concisely."},
-        *state["messages"],
-    ]
-    resp = llm_with_tools.invoke(messages)
+    # The conversation history already captures the prior context, so we
+    # simply pass the stored messages directly to the model. Adding a
+    # system prompt on every invocation causes the model to echo the user
+    # input, so it has been removed.
+    resp = llm_with_tools.invoke(state["messages"])
     return {"messages": [resp]}
 
 
