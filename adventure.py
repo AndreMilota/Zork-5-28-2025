@@ -3,6 +3,8 @@ from typing import Annotated, TypedDict, Dict
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, InjectedState, tools_condition
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import Command, interrupt
 from langchain.tools import tool
 
 import core
@@ -48,8 +50,14 @@ def summarize_room(state: GameState):
 
 
 def ask_for_action(state: GameState):
-    """Prompt the player for their next action."""
-    return {"messages": [{"role": "assistant", "content": "What do you do?"}]}
+    """Prompt the player for their next action using a human interrupt."""
+    action = interrupt("What do you do?")
+    return {
+        "messages": [
+            {"role": "assistant", "content": "What do you do?"},
+            {"role": "user", "content": action},
+        ]
+    }
 
 
 @tool
@@ -94,31 +102,38 @@ graph_builder.add_edge("tools", "summarize")
 
 graph_builder.set_entry_point("summarize")
 
-graph = graph_builder.compile()
+graph = graph_builder.compile(checkpointer=MemorySaver())
 
 
 # Simple helper to play the game from a script
 
 def play(start_room: str = "hall"):
     """Simple interactive loop for the adventure game."""
-    state = {"current_room": start_room, "messages": []}
+    import uuid
 
-    # Summarize the starting room and ask for input
-    state = graph.invoke(state, interrupt_after=["ask"])
-    for msg in state["messages"]:
-        print(msg.content)
+    state: GameState = {"current_room": start_room, "messages": []}
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+    command: Command | dict = state
+    prev_len = 0
 
     while True:
-        user_input = input("> ")
-        if user_input.lower() in {"quit", "exit", "q"}:
-            print("Goodbye!")
+        for event in graph.stream(command, config, stream_mode="values"):
+            state = event  # capture latest state
+            if "messages" in event:
+                for msg in event["messages"][prev_len:]:
+                    print(msg.content)
+                prev_len = len(event["messages"])
+            if "__interrupt__" in event:
+                prompt = event["__interrupt__"][0].value
+                user_input = input(f"{prompt}\n> ")
+                if user_input.lower() in {"quit", "exit", "q"}:
+                    print("Goodbye!")
+                    return
+                command = Command(resume=user_input)
+                break
+        else:
             break
-        # Append player input and process until the next prompt
-        state["messages"].append({"role": "user", "content": user_input})
-        prev_len = len(state["messages"])
-        state = graph.invoke(state, interrupt_after=["ask"])
-        for msg in state["messages"][prev_len:]:
-            print(msg.content)
+
 
 
 if __name__ == "__main__":
