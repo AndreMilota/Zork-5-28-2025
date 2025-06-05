@@ -7,10 +7,11 @@
 
    (If you're using PyCharm, you'll want to set it as the Python interpreter and mark the directory as excluded so it doesn't show up in search results.)
 
-2. Activate it:
+2. Activate it (may vary by OS):
     ```bash
     source .venv/Scripts/activate
     ```
+   
 
 3. Pick an LLM provider to use from [here](https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot/#3-add-a-node) (Google/Gemini is free).
 4. Ensure its LangGraph plugin exists in `requirements.txt` (you may commit this).
@@ -32,7 +33,7 @@
 
 ## Running
 
-1. Activate the venv:
+1. Activate the venv (may vary by OS):
     ```bash
     source .venv/Scripts/activate
     ```
