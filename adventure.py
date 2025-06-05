@@ -52,12 +52,10 @@ def summarize_room(state: GameState):
 def ask_for_action(state: GameState):
     """Prompt the player for their next action using a human interrupt."""
     action = interrupt("What do you do?")
-    return {
-        "messages": [
-            {"role": "assistant", "content": "What do you do?"},
-            {"role": "user", "content": action},
-        ]
-    }
+    # The player is prompted in the terminal, so the LLM does not need to
+    # explicitly ask "What do you do?". We only return the user's response
+    # to continue the conversation.
+    return {"messages": [{"role": "user", "content": action}]}
 
 
 @tool
@@ -130,6 +128,7 @@ def play(start_room: str = "hall"):
                     print("Goodbye!")
                     return
                 command = Command(resume=user_input)
+                prev_len += 1
                 break
         else:
             break
