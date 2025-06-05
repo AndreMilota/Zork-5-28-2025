@@ -3,3 +3,4 @@
 core.py
 *.png
 __pycache__/
+db/rooms.db
