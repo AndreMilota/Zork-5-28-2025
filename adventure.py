@@ -1,0 +1,113 @@
+from typing import Annotated, TypedDict, Dict
+
+from langgraph.graph import StateGraph, START
+from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode, InjectedState, tools_condition
+from langchain.tools import tool
+
+import core
+
+# Simple room "database"
+ROOMS: Dict[str, Dict] = {
+    "hall": {
+        "text": "A dimly lit hallway with stone walls. A door leads east.",
+        "exits": {"east": "kitchen"},
+    },
+    "kitchen": {
+        "text": "Dusty pots hang from the ceiling. A hallway lies to the west.",
+        "exits": {"west": "hall"},
+    },
+}
+
+
+class GameState(TypedDict):
+    messages: Annotated[list, add_messages]
+    current_room: str
+
+
+graph_builder = StateGraph(GameState)
+
+
+# ----------------------------- nodes -----------------------------
+
+def summarize_room(state: GameState):
+    room = ROOMS[state["current_room"]]
+    prompt = f"You are looking at {room['text']} Summarize it for the player."
+    resp = core.llm.invoke([{"role": "user", "content": prompt}])
+    return {"messages": [resp]}
+
+
+def ask_for_action(state: GameState):
+    resp = core.llm.invoke(
+        state["messages"] + [{"role": "user", "content": "What do you want to do?"}]
+    )
+    return {"messages": [resp]}
+
+
+@tool
+def move_room(direction: str, state: Annotated[GameState, InjectedState]) -> str:
+    """Move to an adjacent room in the given direction."""
+    exits = ROOMS[state["current_room"]]["exits"]
+    if direction not in exits:
+        return "You can't go that way."
+    state["current_room"] = exits[direction]
+    return f"You go {direction}."
+
+
+llm_with_tools = core.llm.bind_tools([move_room])
+
+
+def interpret_action(state: GameState):
+    """Use the LLM to respond to the player and call tools if needed."""
+    resp = llm_with_tools.invoke(state["messages"])
+    return {"messages": [resp]}
+
+
+# ---------------------------- edges ------------------------------
+
+graph_builder.add_node("summarize", summarize_room)
+
+graph_builder.add_node("ask", ask_for_action)
+
+graph_builder.add_node("interpret", interpret_action)
+graph_builder.add_node("tools", ToolNode([move_room]))
+graph_builder.add_edge("summarize", "ask")
+graph_builder.add_edge("ask", "interpret")
+
+graph_builder.add_conditional_edges(
+    "interpret", tools_condition, {"tools": "tools", "__end__": "ask"}
+)
+
+graph_builder.add_edge("tools", "summarize")
+
+graph_builder.set_entry_point("summarize")
+
+graph = graph_builder.compile()
+
+
+# Simple helper to play the game from a script
+
+def play(start_room: str = "hall"):
+    """Simple interactive loop for the adventure game."""
+    state = {"current_room": start_room, "messages": []}
+
+    # Summarize the starting room and ask for input
+    state = graph.invoke(state, interrupt_after=["ask"])
+    for msg in state["messages"]:
+        print(msg.content)
+
+    while True:
+        user_input = input("> ")
+        if user_input.lower() in {"quit", "exit", "q"}:
+            print("Goodbye!")
+            break
+        # Append player input and process until the next prompt
+        state["messages"].append({"role": "user", "content": user_input})
+        prev_len = len(state["messages"])
+        state = graph.invoke(state, interrupt_after=["ask"])
+        for msg in state["messages"][prev_len:]:
+            print(msg.content)
+
+
+if __name__ == "__main__":
+    play()
