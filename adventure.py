@@ -1,6 +1,6 @@
 from typing import Annotated, TypedDict, Dict
 
-from langgraph.graph import StateGraph, START
+from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, InjectedState, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
@@ -39,6 +39,7 @@ ROOMS: Dict[str, Dict] = {
 class GameState(TypedDict):
     messages: Annotated[list, add_messages]
     current_room: str
+    need_summary: bool
 
 
 graph_builder = StateGraph(GameState)
@@ -59,7 +60,7 @@ def summarize_room(state: GameState):
         {"role": "user", "content": room["description"]},
     ]
     resp = core.llm.invoke(prompt)
-    return {"messages": [resp]}
+    return {"messages": [resp], "need_summary": False}
 
 
 def ask_for_action(state: GameState):
@@ -92,7 +93,7 @@ def move_room(
         tool_call_id=tool_call_id,
         name="move_room",
     )
-    return Command(update={"current_room": new_room, "messages": [msg]})
+    return Command(update={"current_room": new_room, "messages": [msg], "need_summary": True})
 
 
 llm_with_tools = core.llm.bind_tools([move_room])
@@ -116,14 +117,22 @@ graph_builder.add_node("ask", ask_for_action)
 
 graph_builder.add_node("interpret", interpret_action)
 graph_builder.add_node("tools", ToolNode([move_room]))
+graph_builder.add_node("check_summary", lambda state: {})
+
 graph_builder.add_edge("summarize", "ask")
 graph_builder.add_edge("ask", "interpret")
 
 graph_builder.add_conditional_edges(
-    "interpret", tools_condition, {"tools": "tools", "__end__": "ask"}
+    "interpret", tools_condition, {"tools": "tools", "__end__": "check_summary"}
 )
 
-graph_builder.add_edge("tools", "summarize")
+graph_builder.add_edge("tools", "interpret")
+
+graph_builder.add_conditional_edges(
+    "check_summary",
+    lambda state: "summarize" if state.get("need_summary") else "ask",
+    {"summarize": "summarize", "ask": "ask"},
+)
 
 graph_builder.set_entry_point("summarize")
 
@@ -136,7 +145,7 @@ def play(start_room: str = "hall"):
     """Simple interactive loop for the adventure game."""
     import uuid
 
-    state: GameState = {"current_room": start_room, "messages": []}
+    state: GameState = {"current_room": start_room, "messages": [], "need_summary": False}
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}
     command: Command | dict = state
     prev_len = 0
