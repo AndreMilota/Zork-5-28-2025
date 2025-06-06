@@ -6,6 +6,8 @@ from langgraph.prebuilt import ToolNode, InjectedState, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command, interrupt
 from langchain.tools import tool
+from langchain_core.tools import InjectedToolCallId
+from langchain_core.messages import ToolMessage
 
 import core
 
@@ -58,13 +60,27 @@ def ask_for_action(state: GameState):
 
 
 @tool
-def move_room(direction: str, state: Annotated[GameState, InjectedState]) -> str:
+def move_room(
+    direction: str,
+    state: Annotated[GameState, InjectedState],
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
     """Move to an adjacent room in the given direction."""
     exits = ROOMS[state["current_room"]]["exits"]
     if direction not in exits:
-        return "You can't go that way."
-    state["current_room"] = exits[direction]
-    return f"You go {direction}."
+        return ToolMessage(
+            "You can't go that way.",
+            tool_call_id=tool_call_id,
+            name="move_room",
+        )
+    new_room = exits[direction]
+    state["current_room"] = new_room
+    msg = ToolMessage(
+        f"You go {direction}.",
+        tool_call_id=tool_call_id,
+        name="move_room",
+    )
+    return Command(update={"current_room": new_room, "messages": [msg]})
 
 
 llm_with_tools = core.llm.bind_tools([move_room])
