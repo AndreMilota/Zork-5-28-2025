@@ -80,20 +80,27 @@ def move_room(
 ) -> Command:
     """Move to an adjacent room in the given direction."""
     exits = ROOMS[state["current_room"]]["exits"]
-    if direction not in exits:
+
+    # Normalize the direction to handle case variations like "East" vs "east"
+    norm_direction = direction.lower()
+
+    if norm_direction not in exits:
         return ToolMessage(
             "You can't go that way.",
             tool_call_id=tool_call_id,
             name="move_room",
         )
-    new_room = exits[direction]
+
+    new_room = exits[norm_direction]
     state["current_room"] = new_room
     msg = ToolMessage(
-        f"You go {direction}.",
+        f"You go {norm_direction}.",
         tool_call_id=tool_call_id,
         name="move_room",
     )
-    return Command(update={"current_room": new_room, "messages": [msg], "need_summary": True})
+    return Command(
+        update={"current_room": new_room, "messages": [msg], "need_summary": True}
+    )
 
 
 llm_with_tools = core.llm.bind_tools([move_room])
