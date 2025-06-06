@@ -117,25 +117,28 @@ graph_builder.add_node("ask", ask_for_action)
 
 graph_builder.add_node("interpret", interpret_action)
 graph_builder.add_node("tools", ToolNode([move_room]))
-graph_builder.add_node("check_summary", lambda state: {})
 
 graph_builder.add_edge("summarize", "ask")
 graph_builder.add_edge("ask", "interpret")
 
 graph_builder.add_conditional_edges(
-    "interpret", tools_condition, {"tools": "tools", "__end__": "check_summary"}
-)
-
-graph_builder.add_conditional_edges(
     "tools",
-    lambda state: "check_summary" if state.get("need_summary") else "interpret",
-    {"check_summary": "check_summary", "interpret": "interpret"},
+    lambda state: "summarize" if state.get("need_summary") else "interpret",
+    {"summarize": "summarize", "interpret": "interpret"},
 )
 
+
+def router(state: GameState):
+    """Route after interpretation based on tool calls and narration flag."""
+    if tools_condition(state) == "tools":
+        return "tools"
+    return "summarize" if state.get("need_summary") else "ask"
+
+
 graph_builder.add_conditional_edges(
-    "check_summary",
-    lambda state: "summarize" if state.get("need_summary") else "ask",
-    {"summarize": "summarize", "ask": "ask"},
+    "interpret",
+    router,
+    {"tools": "tools", "summarize": "summarize", "ask": "ask"},
 )
 
 graph_builder.set_entry_point("summarize")
@@ -160,7 +163,8 @@ def play(start_room: str = "hall"):
             if "messages" in event:
                 if len(event["messages"]) > prev_len:
                     for msg in event["messages"][prev_len:]:
-                        print(msg.content)
+                        if not getattr(msg, "tool_calls", []):
+                            print(msg.content)
                     prev_len = len(event["messages"])
             if "__interrupt__" in event:
                 prompt = event["__interrupt__"][0].value
