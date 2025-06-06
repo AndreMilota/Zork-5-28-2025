@@ -1,7 +1,8 @@
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from core import llm
-from langchain.tools import tool
+from langchain_core.tools import tool
+from langchain_core.messages import HumanMessage
 
 from graph.Zork_graph import get_room  # assumes graph/ is a package (has __init__.py)
 
@@ -58,10 +59,10 @@ def respond_to_user(state: dict) -> dict:
 
 # --- Graph Definition ---
 builder = StateGraph(state_schema=dict)
-builder.add_node("load_room", ToolNode(load_room))
-builder.add_node("summarize_room", ToolNode(summarize_room))
-builder.add_node("show_input", ToolNode(show_summary_and_get_input))
-builder.add_node("respond", ToolNode(respond_to_user))
+builder.add_node("load_room", ToolNode([load_room]))
+builder.add_node("summarize_room", ToolNode([summarize_room]))
+builder.add_node("show_input", ToolNode([show_summary_and_get_input]))
+builder.add_node("respond", ToolNode([respond_to_user]))
 
 builder.set_entry_point("load_room")
 
@@ -76,6 +77,6 @@ graph = builder.compile()
 if __name__ == "__main__":
     print("Starting One-Room LangGraph Game. Type Ctrl+C to quit.")
     try:
-        graph.invoke({})
+        graph.invoke(HumanMessage(content="Start the game"))
     except KeyboardInterrupt:
         print("\nGame exited.")
