@@ -14,11 +14,23 @@ import core
 # Simple room "database"
 ROOMS: Dict[str, Dict] = {
     "hall": {
-        "description": "A dimly lit hallway with stone walls. A door leads east.",
+        "description": (
+            "A dimly lit hallway with rough stone walls. Faintly glowing torches "
+            "cast long shadows across the cracked floor, and cobwebs hang in the "
+            "corners. Ancient portraits, nearly faded to nothing, line the walls "
+            "with ghostly faces. A heavy oak door, its iron handle worn smooth, "
+            "leads east."
+        ),
         "exits": {"east": "kitchen"},
     },
     "kitchen": {
-        "description": "Dusty pots hang from the ceiling. A hallway lies to the west.",
+        "description": (
+            "Dusty pots hang from the ceiling above a scarred wooden table. "
+            "A large stone hearth dominates one side, still carrying the faint "
+            "smell of old herbs and smoke. Rusty utensils litter the counters, "
+            "and a grimy window barely lets in any light. An archway to the "
+            "west returns to the hallway."
+        ),
         "exits": {"west": "hall"},
     },
 }
