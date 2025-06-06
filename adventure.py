@@ -86,15 +86,16 @@ def move_room(
 
     if norm_direction not in exits:
         return ToolMessage(
-            "You can't go that way.",
+            "INVALID_DIRECTION",
             tool_call_id=tool_call_id,
             name="move_room",
         )
 
     new_room = exits[norm_direction]
     state["current_room"] = new_room
+    # Inform the LLM of success without directly narrating
     msg = ToolMessage(
-        f"You go {norm_direction}.",
+        "MOVED",
         tool_call_id=tool_call_id,
         name="move_room",
     )
@@ -170,7 +171,8 @@ def play(start_room: str = "hall"):
             if "messages" in event:
                 if len(event["messages"]) > prev_len:
                     for msg in event["messages"][prev_len:]:
-                        if not getattr(msg, "tool_calls", []):
+                        # Skip tool messages so the LLM can narrate the result
+                        if not getattr(msg, "tool_calls", []) and not isinstance(msg, ToolMessage):
                             print(msg.content)
                     prev_len = len(event["messages"])
             if "__interrupt__" in event:
