@@ -12,11 +12,11 @@ import core
 # Simple room "database"
 ROOMS: Dict[str, Dict] = {
     "hall": {
-        "text": "A dimly lit hallway with stone walls. A door leads east.",
+        "description": "A dimly lit hallway with stone walls. A door leads east.",
         "exits": {"east": "kitchen"},
     },
     "kitchen": {
-        "text": "Dusty pots hang from the ceiling. A hallway lies to the west.",
+        "description": "Dusty pots hang from the ceiling. A hallway lies to the west.",
         "exits": {"west": "hall"},
     },
 }
@@ -39,11 +39,10 @@ def summarize_room(state: GameState):
         {
             "role": "system",
             "content": (
-                "You are a text adventure narrator. Describe the room in one "
-                "short sentence without any extra commentary."
+                "You are a text adventure narrator. Briefly summarize the room."
             ),
         },
-        {"role": "user", "content": room["text"]},
+        {"role": "user", "content": room["description"]},
     ]
     resp = core.llm.invoke(prompt)
     return {"messages": [resp]}
