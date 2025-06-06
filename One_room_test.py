@@ -9,19 +9,11 @@ from graph.Zork_graph import get_room  # assumes graph/ is a package (has __init
 # --- Setup ---
 ROOM_ID = "room_1_1"
 
-# --- Shared state type ---
-# We'll keep state as a dict with keys:
-# { "room": room_dict, "summary": str, "user_input": str, "llm_response": str }
-
-# --- Tools ---
-
-@tool
 def load_room(state: dict) -> dict:
     """Loads the current room from the database."""
     room = get_room(ROOM_ID)
     return {"room": room}
 
-@tool
 def summarize_room(state: dict) -> dict:
     """Uses an LLM to summarize the room description and visible items."""
     room = state["room"]
@@ -32,7 +24,6 @@ def summarize_room(state: dict) -> dict:
     summary = llm.invoke(prompt).content
     return {"summary": summary}
 
-@tool
 def show_summary_and_get_input(state: dict) -> dict:
     """Displays the room summary and gets the user's input."""
     print("\n--- Room Summary ---")
@@ -40,7 +31,6 @@ def show_summary_and_get_input(state: dict) -> dict:
     user_input = input("\nWhat would you like to do or ask? ")
     return {"user_input": user_input}
 
-@tool
 def respond_to_user(state: dict) -> dict:
     """Responds to the user's input using the LLM, staying in-character."""
     room = state["room"]
@@ -59,10 +49,10 @@ def respond_to_user(state: dict) -> dict:
 
 # --- Graph Definition ---
 builder = StateGraph(state_schema=dict)
-builder.add_node("load_room", ToolNode([load_room]))
-builder.add_node("summarize_room", ToolNode([summarize_room]))
-builder.add_node("show_input", ToolNode([show_summary_and_get_input]))
-builder.add_node("respond", ToolNode([respond_to_user]))
+builder.add_node("load_room", load_room)
+builder.add_node("summarize_room", summarize_room)
+builder.add_node("show_input", show_summary_and_get_input)
+builder.add_node("respond", respond_to_user)
 
 builder.set_entry_point("load_room")
 
