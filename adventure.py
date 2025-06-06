@@ -118,9 +118,10 @@ def play(start_room: str = "hall"):
         for event in graph.stream(command, config, stream_mode="values"):
             state = event  # capture latest state
             if "messages" in event:
-                for msg in event["messages"][prev_len:]:
-                    print(msg.content)
-                prev_len = len(event["messages"])
+                if len(event["messages"]) > prev_len:
+                    for msg in event["messages"][prev_len:]:
+                        print(msg.content)
+                    prev_len = len(event["messages"])
             if "__interrupt__" in event:
                 prompt = event["__interrupt__"][0].value
                 user_input = input(prompt)
