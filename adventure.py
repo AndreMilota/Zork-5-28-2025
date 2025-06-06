@@ -7,7 +7,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command, interrupt
 from langchain.tools import tool
 from langchain_core.tools import InjectedToolCallId
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, RemoveMessage
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
 import core
 
@@ -99,8 +100,14 @@ def move_room(
         tool_call_id=tool_call_id,
         name="move_room",
     )
+    # Clear previous messages so the model doesn't see old context
+    clear = RemoveMessage(id=REMOVE_ALL_MESSAGES)
     return Command(
-        update={"current_room": new_room, "messages": [msg], "need_summary": True}
+        update={
+            "current_room": new_room,
+            "messages": [clear, msg],
+            "need_summary": True,
+        }
     )
 
 
