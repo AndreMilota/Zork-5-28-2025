@@ -5,5 +5,9 @@
 - Always test your changes before opening a pull request.
 - You may test by piping your inputs into main.py like so:
     ```bash
-    python main.py <<'EOF' east west exit EOF
+    python main.py <<'EOF'
+    go east
+    go west
+    exit
+    EOF
     ```
