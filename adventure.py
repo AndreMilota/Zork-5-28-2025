@@ -126,7 +126,11 @@ graph_builder.add_conditional_edges(
     "interpret", tools_condition, {"tools": "tools", "__end__": "check_summary"}
 )
 
-graph_builder.add_edge("tools", "interpret")
+graph_builder.add_conditional_edges(
+    "tools",
+    lambda state: "check_summary" if state.get("need_summary") else "interpret",
+    {"check_summary": "check_summary", "interpret": "interpret"},
+)
 
 graph_builder.add_conditional_edges(
     "check_summary",
