@@ -162,6 +162,18 @@ graph_builder.set_entry_point("summarize")
 graph = graph_builder.compile(checkpointer=MemorySaver())
 
 
+# import pathlib
+#
+# # Save the graph image to a file
+# try:
+#     output_path = pathlib.Path("graph.png")
+#     png_bytes = graph.get_graph().draw_mermaid_png()
+#     output_path.write_bytes(png_bytes)
+#     print(f"Graph image saved to {output_path.resolve()}")
+# except Exception as e:
+#     print(f"❌ Failed to generate graph image: {e}")
+
+
 # Simple helper to play the game from a script
 
 

@@ -1,6 +1,9 @@
 langgraph==0.4.7
 langsmith==0.3.43
-langchain[google-genai]==0.3.25
-langchain-anthropic
-# Add others if needed, like:
-#langchain[openai]==0.3.18
+langchain[anthropic,google-genai,huggingface]==0.3.25
+
+# For running an LLM locally (Ken):
+#--find-links https://download.pytorch.org/whl/torch_stable.html
+#transformers==4.52.4
+#torch==2.3.1+cu118
+#accelerate==1.6.0

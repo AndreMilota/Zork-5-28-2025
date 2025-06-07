@@ -14,7 +14,7 @@
    
 
 3. Pick an LLM provider to use from [here](https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot/#3-add-a-node) (Google/Gemini is free).
-4. Ensure its LangGraph plugin exists in `requirements.txt` (you may commit this).
+4. Ensure the `langchain` extra dependency is included in `requirements.txt` (you may commit this).
 5. Create an API key with the provider. Then create `./core.py` and copy the LLM initialization code (from the previous link) into it. Looks like this:
    ```python
    import os
