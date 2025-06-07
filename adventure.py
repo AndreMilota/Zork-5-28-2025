@@ -48,6 +48,7 @@ graph_builder = StateGraph(GameState)
 
 # ----------------------------- nodes -----------------------------
 
+
 def summarize_room(state: GameState):
     """Return a short narration of the current room."""
     room = ROOMS[state["current_room"]]
@@ -163,11 +164,16 @@ graph = graph_builder.compile(checkpointer=MemorySaver())
 
 # Simple helper to play the game from a script
 
+
 def play(start_room: str = "hall"):
     """Simple interactive loop for the adventure game."""
     import uuid
 
-    state: GameState = {"current_room": start_room, "messages": [], "need_summary": False}
+    state: GameState = {
+        "current_room": start_room,
+        "messages": [],
+        "need_summary": False,
+    }
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}
     command: Command | dict = state
     prev_len = 0
@@ -176,10 +182,15 @@ def play(start_room: str = "hall"):
         for event in graph.stream(command, config, stream_mode="values"):
             state = event  # capture latest state
             if "messages" in event:
+                # If the conversation was cleared, reset our counter
+                if len(event["messages"]) < prev_len:
+                    prev_len = 0
                 if len(event["messages"]) > prev_len:
                     for msg in event["messages"][prev_len:]:
                         # Skip tool messages so the LLM can narrate the result
-                        if not getattr(msg, "tool_calls", []) and not isinstance(msg, ToolMessage):
+                        if not getattr(msg, "tool_calls", []) and not isinstance(
+                            msg, ToolMessage
+                        ):
                             print(msg.content)
                     prev_len = len(event["messages"])
             if "__interrupt__" in event:
@@ -193,7 +204,6 @@ def play(start_room: str = "hall"):
                 break
         else:
             break
-
 
 
 if __name__ == "__main__":
