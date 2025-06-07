@@ -177,15 +177,15 @@ def play(start_room: str = "hall"):
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}
     command: Command | dict = state
     prev_len = 0
+    prev_first_message = None
 
     while True:
-        for event in graph.stream(command, config, stream_mode="values"):
-            state = event  # capture latest state
+        stream = graph.stream(command, config, stream_mode="values")
+        for event in stream:
             if "messages" in event:
-                # If the conversation history shrinks, skip any previously
-                # printed messages so we don't reprint stale narration.
-                if len(event["messages"]) < prev_len:
-                    prev_len = len(event["messages"])
+                if len(event["messages"]) > 0 and event["messages"][0] != prev_first_message:
+                    prev_first_message = event["messages"][0]
+                    prev_len = 0
                 if len(event["messages"]) > prev_len:
                     for msg in event["messages"][prev_len:]:
                         # Skip tool messages so the LLM can narrate the result
@@ -193,6 +193,7 @@ def play(start_room: str = "hall"):
                             msg, ToolMessage
                         ):
                             print(msg.content)
+                            print()
                     prev_len = len(event["messages"])
             if "__interrupt__" in event:
                 prompt = event["__interrupt__"][0].value
