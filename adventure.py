@@ -182,9 +182,10 @@ def play(start_room: str = "hall"):
         for event in graph.stream(command, config, stream_mode="values"):
             state = event  # capture latest state
             if "messages" in event:
-                # If the conversation was cleared, reset our counter
+                # If the conversation history shrinks, skip any previously
+                # printed messages so we don't reprint stale narration.
                 if len(event["messages"]) < prev_len:
-                    prev_len = 0
+                    prev_len = len(event["messages"])
                 if len(event["messages"]) > prev_len:
                     for msg in event["messages"][prev_len:]:
                         # Skip tool messages so the LLM can narrate the result
