@@ -3,6 +3,7 @@ from langgraph.prebuilt import ToolNode
 from core import llm
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage
+from typing import TypedDict, List
 
 from graph.Zork_graph import get_room  # assumes graph/ is a package (has __init__.py)
 
@@ -48,7 +49,14 @@ def respond_to_user(state: dict) -> dict:
 
 
 # --- Graph Definition ---
-builder = StateGraph(state_schema=dict)
+class GameState(TypedDict, total=False):
+    room: dict
+    summary: str
+    user_input: str
+    llm_response: str
+
+builder = StateGraph(state_schema=GameState)
+
 builder.add_node("load_room", load_room)
 builder.add_node("summarize_room", summarize_room)
 builder.add_node("show_input", show_summary_and_get_input)
