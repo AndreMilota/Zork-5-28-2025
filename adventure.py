@@ -1,4 +1,4 @@
-from typing import Annotated, TypedDict, Dict
+from typing_extensions import Annotated, TypedDict, Dict
 
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
@@ -106,7 +106,7 @@ def move_room(
     return Command(
         update={
             "current_room": new_room,
-            "messages": [clear, msg],
+            "messages": [msg, clear],
             "need_summary": True,
         }
     )
@@ -192,7 +192,7 @@ def play(start_room: str = "hall"):
     prev_first_message = None
 
     while True:
-        stream = graph.stream(command, config, stream_mode="values")
+        stream = graph.stream(command, config, stream_mode="values", debug=True)
         for event in stream:
             if "messages" in event:
                 if len(event["messages"]) > 0 and event["messages"][0] != prev_first_message:
