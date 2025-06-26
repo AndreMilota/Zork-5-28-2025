@@ -21,6 +21,7 @@ ROOMS: Dict[str, Dict] = {
             "corners. Ancient portraits, nearly faded to nothing, line the walls "
             "with ghostly faces. A heavy oak door, its iron handle worn smooth, "
             "leads east."
+            "There is a floor to ceiling mirror on one side which will allow someone to see a reflection of themselves."
         ),
         "exits": {"east": "kitchen"},
     },
@@ -36,11 +37,18 @@ ROOMS: Dict[str, Dict] = {
     },
 }
 
+player_description = ("You are a short Man about 50 years old. Have a long green beard with liken growing in it." ""
+"Your eys are blue eyes and short black hair. You are wearing a battered brown leather jacket "
+"torn blue jeans and boots. You bave a backpack with six pairs of socks and nothing else. "
+"Have a bow with six arrows one of which is broken. You are wearing a comical hat made of red "
+"felt that has little bells on it. "
+"You have bulging pockets, bulging with something that may be important some day.")
 
 class GameState(TypedDict):
     messages: Annotated[list, add_messages]
     current_room: str
     need_summary: bool
+    player_description: str
 
 
 graph_builder = StateGraph(GameState)
@@ -59,7 +67,13 @@ def summarize_room(state: GameState):
                 "You are a text adventure narrator. Briefly summarize the room."
             ),
         },
-        {"role": "user", "content": room["description"]},
+        {
+            "role": "user",
+            "content": (
+                f"{room['description']}\n\n"
+                f"The player is described as: {state['player_description']}"
+            ),
+        },
     ]
     resp = core.llm.invoke(prompt)
     return {"messages": [resp], "need_summary": False}
@@ -121,7 +135,19 @@ def interpret_action(state: GameState):
     # simply pass the stored messages directly to the model. Adding a
     # system prompt on every invocation causes the model to echo the user
     # input, so it has been removed.
-    resp = llm_with_tools.invoke(state["messages"])
+    room = ROOMS[state["current_room"]]
+    system_prompt = {
+        "role": "system",
+        "content": (
+            "You are a text adventure narrator.\n\n"
+            f"The player is described as: {state['player_description']}\n"
+            f"The current room is: {state['current_room']}\n"
+            f"Room description: {room['description']}\n\n"
+            "Respond appropriately to user actions and observations."
+        ),
+    }
+    full_prompt = [system_prompt] + state["messages"]
+    resp = llm_with_tools.invoke(full_prompt)
     return {"messages": [resp]}
 
 
@@ -185,6 +211,7 @@ def play(start_room: str = "hall"):
         "current_room": start_room,
         "messages": [],
         "need_summary": False,
+        "player_description": player_description
     }
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}
     command: Command | dict = state
@@ -192,7 +219,7 @@ def play(start_room: str = "hall"):
     prev_first_message = None
 
     while True:
-        stream = graph.stream(command, config, stream_mode="values", debug=True)
+        stream = graph.stream(command, config, stream_mode="values", debug=False)
         for event in stream:
             if "messages" in event:
                 if len(event["messages"]) > 0 and event["messages"][0] != prev_first_message:
