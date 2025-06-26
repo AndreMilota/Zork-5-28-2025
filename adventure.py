@@ -21,7 +21,7 @@ ROOMS: Dict[str, Dict] = {
             "corners. Ancient portraits, nearly faded to nothing, line the walls "
             "with ghostly faces. A heavy oak door, its iron handle worn smooth, "
             "leads east."
-            "There is a floor to ceiling mirror on one side which will allow someone to see a reflection of themselves."
+            "There is a very dusty floor to ceiling mirror on one side which will allow someone to see a reflection of themselves."
         ),
         "exits": {"east": "kitchen"},
     },
@@ -96,7 +96,6 @@ def send_to_player(
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """Send text to the player as narration or description."""
-    print("sending to player just was called:", text)
     return Command(
         update={
             "messages": [
@@ -109,6 +108,30 @@ def send_to_player(
         }
     )
 
+@tool
+def modify_room_description(
+    new_description: str,
+    state: Annotated[GameState, InjectedState],
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """Modify the current room's description."""
+    room_name = state["current_room"]
+    ROOMS[room_name]["description"] = new_description
+
+    print("the room description was modified:", new_description)
+
+    return Command(
+        update={
+            "messages": [
+                ToolMessage(
+                    content=f"Room description updated.",
+                    name="modify_room_description",
+                    tool_call_id=tool_call_id,
+                )
+            ],
+            "need_summary": True,  # So the LLM gets to describe the new room
+        }
+    )
 
 @tool
 def move_room(
@@ -147,7 +170,8 @@ def move_room(
         }
     )
 
-llm_with_tools = core.llm.bind_tools([move_room, send_to_player])
+TOOLS = [move_room, send_to_player, modify_room_description]
+llm_with_tools = core.llm.bind_tools(TOOLS)
 
 def interpret_action(state: GameState):
     """Use the LLM to respond to the player and call tools if needed."""
@@ -179,7 +203,7 @@ graph_builder.add_node("ask", ask_for_action)
 
 graph_builder.add_node("interpret", interpret_action)
 #graph_builder.add_node("tools", ToolNode([move_room]))
-graph_builder.add_node("tools", ToolNode([move_room, send_to_player]))
+graph_builder.add_node("tools", ToolNode(TOOLS))
 
 graph_builder.add_edge("summarize", "ask")
 graph_builder.add_edge("ask", "interpret")
