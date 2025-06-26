@@ -88,6 +88,28 @@ def ask_for_action(state: GameState):
     return {"messages": [{"role": "user", "content": action}]}
 
 
+
+@tool
+def send_to_player(
+    text: str,
+    state: Annotated[GameState, InjectedState],
+    tool_call_id: Annotated[str, InjectedToolCallId],
+) -> Command:
+    """Send text to the player as narration or description."""
+    print("sending to player just was called:", text)
+    return Command(
+        update={
+            "messages": [
+                ToolMessage(
+                    content=text,
+                    name="send_to_player",
+                    tool_call_id=tool_call_id,
+                )
+            ]
+        }
+    )
+
+
 @tool
 def move_room(
     direction: str,
@@ -125,9 +147,7 @@ def move_room(
         }
     )
 
-
-llm_with_tools = core.llm.bind_tools([move_room])
-
+llm_with_tools = core.llm.bind_tools([move_room, send_to_player])
 
 def interpret_action(state: GameState):
     """Use the LLM to respond to the player and call tools if needed."""
@@ -158,7 +178,8 @@ graph_builder.add_node("summarize", summarize_room)
 graph_builder.add_node("ask", ask_for_action)
 
 graph_builder.add_node("interpret", interpret_action)
-graph_builder.add_node("tools", ToolNode([move_room]))
+#graph_builder.add_node("tools", ToolNode([move_room]))
+graph_builder.add_node("tools", ToolNode([move_room, send_to_player]))
 
 graph_builder.add_edge("summarize", "ask")
 graph_builder.add_edge("ask", "interpret")
@@ -228,11 +249,13 @@ def play(start_room: str = "hall"):
                 if len(event["messages"]) > prev_len:
                     for msg in event["messages"][prev_len:]:
                         # Skip tool messages so the LLM can narrate the result
-                        if not getattr(msg, "tool_calls", []) and not isinstance(
-                            msg, ToolMessage
-                        ):
+                        if isinstance(msg, ToolMessage) and msg.name == "send_to_player":
                             print(msg.content)
                             print()
+                        elif not getattr(msg, "tool_calls", []):
+                            print(msg.content)
+                            print()
+
                     prev_len = len(event["messages"])
             if "__interrupt__" in event:
                 prompt = event["__interrupt__"][0].value
