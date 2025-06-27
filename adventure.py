@@ -87,8 +87,6 @@ def ask_for_action(state: GameState):
     # conversation.
     return {"messages": [{"role": "user", "content": action}]}
 
-
-
 @tool
 def send_to_player(
     text: str,
@@ -112,26 +110,50 @@ def send_to_player(
 def modify_room_description(
     new_description: str,
     state: Annotated[GameState, InjectedState],
-    tool_call_id: Annotated[str, InjectedToolCallId],
-) -> Command:
-    """Modify the current room's description."""
-    room_name = state["current_room"]
-    ROOMS[room_name]["description"] = new_description
+    tool_call_id: Annotated[str, InjectedToolCallId], ) -> Command:
+    """Replace the current room's description with a new one reflecting any changes in the environment.
 
-    print("the room description was modified:", new_description)
-
+        Use this when the player changes something about the room (e.g., breaks an object, adds markings, takes or leaves items).
+        The new description should describe the room's current state completely and consistently.
+        """
+    room = state["current_room"]
+    ROOMS[room]["description"] = new_description
     return Command(
         update={
             "messages": [
                 ToolMessage(
-                    content=f"Room description updated.",
+                    content="Room description updated.",
                     name="modify_room_description",
                     tool_call_id=tool_call_id,
                 )
             ],
-            "need_summary": True,  # So the LLM gets to describe the new room
+            "need_summary": True
         }
     )
+
+@tool
+def modify_player_description(
+    new_description: str,
+    state: Annotated[GameState, InjectedState],
+    tool_call_id: Annotated[str, InjectedToolCallId],) -> Command:
+    """Replace the current description of the player with a new one reflecting any changes to their appearance, health, or possessions.
+
+        Use this when the player's state changes (e.g., puts on clothing, is injured, picks up or loses an item that affects their appearance).
+        The description should be complete and consistent.
+        """
+    return Command(
+        update={
+            "player_description": new_description,
+            "messages": [
+                ToolMessage(
+                    content="Player description updated.",
+                    name="modify_player_description",
+                    tool_call_id=tool_call_id,
+                )
+            ]
+        }
+    )
+
 
 @tool
 def move_room(
@@ -170,7 +192,7 @@ def move_room(
         }
     )
 
-TOOLS = [move_room, send_to_player, modify_room_description]
+TOOLS = [move_room, send_to_player, modify_room_description, modify_player_description]
 llm_with_tools = core.llm.bind_tools(TOOLS)
 
 def interpret_action(state: GameState):
@@ -187,8 +209,11 @@ def interpret_action(state: GameState):
             f"The player is described as: {state['player_description']}\n"
             f"The current room is: {state['current_room']}\n"
             f"Room description: {room['description']}\n\n"
-            "Respond appropriately to user actions and observations."
-        ),
+            "When the player does something that affects themselves (e.g. gets injured, puts on a hat), "
+            "call modify_player_description or send_to_player as appropriate.\n"
+            "When the player does something that changes the environment, call modify_room_description.\n"
+            "If asked about an unspecified detail, choose one, update the state, and narrate the result."
+            ),
     }
     full_prompt = [system_prompt] + state["messages"]
     resp = llm_with_tools.invoke(full_prompt)
