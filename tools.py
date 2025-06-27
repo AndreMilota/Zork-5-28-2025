@@ -86,8 +86,6 @@ def move_room(
 ) -> Command:
     """Move to an adjacent room in the given direction."""
     exits = ROOMS[state["current_room"]]["exits"]
-
-    # Normalize the direction to handle case variations like "East" vs "east"
     norm_direction = direction.lower()
 
     if norm_direction not in exits:
@@ -99,20 +97,19 @@ def move_room(
 
     new_room = exits[norm_direction]
     state["current_room"] = new_room
-    # Inform the LLM of success without directly narrating
     msg = ToolMessage(
         "MOVED",
         tool_call_id=tool_call_id,
         name="move_room",
     )
-    # Clear previous messages so the model doesn't see old context
     clear = RemoveMessage(id=REMOVE_ALL_MESSAGES)
-    return Command(
-        update={
-            "current_room": new_room,
-            "messages": [msg, clear],
-            "need_summary": True,
-        }
-    )
+
+    update = dict(state)  # copy all current state
+    update["current_room"] = new_room
+    update["messages"] = [msg, clear]
+    update["need_summary"] = True
+
+    return Command(update=update)
+
 
 TOOLS = [move_room, send_to_player, modify_room_description, modify_player_description]

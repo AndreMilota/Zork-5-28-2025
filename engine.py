@@ -37,6 +37,7 @@ class GameEngine:
     def process_turn(self, user_input=None):
         """Process one turn of the game. Handles initial state or resumed input."""
         if user_input is None:
+            # Send full state so LangGraph has everything
             command = Command(update=self.state)
         else:
             command = Command(resume=user_input)
@@ -46,6 +47,10 @@ class GameEngine:
         for event in stream:
             if "messages" in event:
                 self._handle_messages(event["messages"])
+
+            if "state" in event:
+                self.state.update(event["state"])
+
             if "__interrupt__" in event:
                 return "__WAITING_FOR_INPUT__", event["__interrupt__"][0].value
 
