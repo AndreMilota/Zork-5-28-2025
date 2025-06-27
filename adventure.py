@@ -50,12 +50,9 @@ class GameState(TypedDict):
     need_summary: bool
     player_description: str
 
-
 graph_builder = StateGraph(GameState)
 
-
 # ----------------------------- nodes -----------------------------
-
 
 def summarize_room(state: GameState):
     """Return a short narration of the current room."""

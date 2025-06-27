@@ -59,7 +59,45 @@ def test_evaluate_response():
         assert result == case["expected"], f"Test case {i+1} failed: expected {case['expected']}, got {result}"
 
     print("All test cases passed!"
-def test_sequence(actions: list)
+
+    def run_batch_tests_list(test_cases):
+        """
+        Run batch tests using a list-based input.
+
+        Args:
+            test_cases: List where each item is:
+                [action, [characteristics]]
+                OR
+                [action] (no characteristics required)
+
+        Returns:
+            True if all tests passed, False if any failed.
+        """
+        for test in test_cases:
+            action = test[0]
+            characteristics = test[1] if len(test) > 1 else []
+
+            # Simulate running the action through your game
+            response = simulate_game_action(action)
+
+            # Print input and output
+            print(f"> Action: {action}")
+            print(f"Response: {response}\n")
+
+            # Evaluate characteristics
+            for characteristic in characteristics:
+                passed = evaluate_response(response, characteristic)
+                print(f"  Check: {characteristic}")
+                print(f"  Passed: {'✅' if passed else '❌'}\n")
+
+                if not passed:
+                    return False  # Fail fast on first failure
+
+        return True  # All passed
+
+
+
+#def test_sequence(actions: list)
 
 
 if __name__ == "__main__":
