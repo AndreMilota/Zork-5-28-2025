@@ -2,9 +2,10 @@ from engine import GameEngine
 
 def play():
     engine = GameEngine()  # Uses default rooms, player description, etc.
+    user_input = None
 
     while True:
-        status, text = engine.process_turn()
+        status, text = engine.process_turn(user_input)
         if text:
             print(text)
             print()
@@ -13,7 +14,6 @@ def play():
             if user_input.lower() in {"quit", "exit", "q"}:
                 print("Goodbye!")
                 break
-            engine.process_turn(user_input)
 
 if __name__ == "__main__":
     play()

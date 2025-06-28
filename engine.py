@@ -36,7 +36,8 @@ class GameEngine:
         collected_outputs = []
         for event in stream:
             if "messages" in event:
-                collected_outputs += self._handle_messages(event["messages"])
+                temp = self._handle_messages(event["messages"])
+                collected_outputs += temp
             if "state" in event:
                 self.state.update(event["state"])
             if "__interrupt__" in event:

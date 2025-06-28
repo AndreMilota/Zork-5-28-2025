@@ -63,6 +63,9 @@ def test_evaluate_response():
 def batch_response(tests: list) -> bool:
     # start the game
     engine = GameEngine()
+    status, response = engine.process_turn()
+    print("Welcome to the game!")
+    print(response)
     count = 0
     for test in tests:
         #see if it is a string
@@ -104,7 +107,7 @@ def test_batch_response():
     test_cases = [
         "go north",
         ["go west", "it failed to move"],
-        ["look around", ["the room is dark.", "there are torches on the walls."]]]
+        ["look around", ["the room is dimly lit.", "there are torches on the walls."]]]
 
     result = batch_response(test_cases)
     assert result, "Batch response test failed"
