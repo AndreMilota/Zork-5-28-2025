@@ -60,46 +60,10 @@ def test_evaluate_response():
 
     print("All test cases passed!")
 
-# def run_batch_tests_list(test_cases):
-#     """
-#     Run batch tests using a list-based input.
-#
-#     Args:
-#         test_cases: List where each item is:
-#             [action, [characteristics]]
-#             OR
-#             [action] (no characteristics required)
-#
-#     Returns:
-#         True if all tests passed, False if any failed.
-#     """
-#     for test in test_cases:
-#         action = test[0]
-#         characteristics = test[1] if len(test) > 1 else []
-#
-#         # Simulate running the action through your game
-#         response = simulate_game_action(action)
-#
-#         # Print input and output
-#         print(f"> Action: {action}")
-#         print(f"Response: {response}\n")
-#
-#         # Evaluate characteristics
-#         for characteristic in characteristics:
-#             passed = evaluate_response(response, characteristic)
-#             print(f"  Check: {characteristic}")
-#             print(f"  Passed: {'✅' if passed else '❌'}\n")
-#
-#             if not passed:
-#                 return False  # Fail fast on first failure
-#
-#     return True  # All passed
-
-
 def batch_response(tests: list) -> bool:
     # start the game
     engine = GameEngine()
-
+    count = 0
     for test in tests:
         #see if it is a string
         if isinstance(test, str):
@@ -119,8 +83,10 @@ def batch_response(tests: list) -> bool:
         # Process the action in the game engine
         status, response = engine.process_turn(action)
         # Print the action and response
+        print(f"Test {count + 1}:")
         print(f"> Action: {action}")
         print(f"Response: {response}\n")
+        count += 1
         # Evaluate the response against each characteristic
         for characteristic in characteristics:
             passed = evaluate_response(response, characteristic)
@@ -137,7 +103,7 @@ def test_batch_response():
     # Define some test cases
     test_cases = [
         "go north",
-        ["go west", "you can not go west."],
+        ["go west", "it failed to move"],
         ["look around", ["the room is dark.", "there are torches on the walls."]]]
 
     result = batch_response(test_cases)

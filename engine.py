@@ -24,16 +24,6 @@ class GameEngine:
         self.prev_len = 0
         self.prev_first_message = None
 
-    # def process_turn (self, command):
-    #     """Core loop for processing a single command through the graph."""
-    #     stream = self.graph.stream(command, self.config, stream_mode="values", debug=False)
-    #     for event in stream:
-    #         if "messages" in event:
-    #             self._handle_messages(event["messages"])
-    #         if "__interrupt__" in event:
-    #             return event["__interrupt__"][0].value  # Return the prompt to ask for input
-    #     return None  # No interrupt means the turn finished cleanly
-
     def process_turn(self, user_input=None):
         """Process one turn of the game. Handles initial state or resumed input."""
         if user_input is None:
@@ -43,31 +33,33 @@ class GameEngine:
 
         stream = self.graph.stream(command, self.config, stream_mode="values", debug=False)
 
+        collected_outputs = []
         for event in stream:
             if "messages" in event:
-                self._handle_messages(event["messages"])
-
+                collected_outputs += self._handle_messages(event["messages"])
             if "state" in event:
                 self.state.update(event["state"])
-
             if "__interrupt__" in event:
-                return "__WAITING_FOR_INPUT__", event["__interrupt__"][0].value
-
-        return "__TURN_COMPLETE__", None
+                return "__WAITING_FOR_INPUT__", "\n".join(collected_outputs + [event["__interrupt__"][0].value])
+        return "__TURN_COMPLETE__", "\n".join(collected_outputs)
 
     def _handle_messages(self, messages):
+        outputs = []
         if len(messages) > 0 and messages[0] != self.prev_first_message:
             self.prev_first_message = messages[0]
             self.prev_len = 0
         if len(messages) > self.prev_len:
             for msg in messages[self.prev_len:]:
                 if isinstance(msg, ToolMessage) and msg.name == "send_to_player":
-                    print(msg.content)
-                    print()
+                    outputs.append(msg.content)
+                    # print(msg.content)
+                    # print()
                 elif not getattr(msg, "tool_calls", []):
-                    print(msg.content)
-                    print()
+                    outputs.append(msg.content)
+                    # print(msg.content)
+                    # print()
             self.prev_len = len(messages)
+        return outputs
 
     def play(self):
         """Interactive play loop."""
