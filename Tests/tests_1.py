@@ -1,5 +1,5 @@
 # import the adventure Python module
-import adventure
+
 from core import llm
 from engine import GameEngine
 
@@ -114,9 +114,15 @@ def test_batch_response():
 
 #def test_sequence(actions: list)
 
+def test_back_and_forth():
+    steps = [["go east", "you are in a kitchen."],
+             ["go west", "you are in a hallway."]]
+    result = batch_response(steps)
+    assert result, "Back and forth test failed"
+
 
 if __name__ == "__main__":
     # Run the tests
-    test_batch_response()
+    test_back_and_forth()
 
 
