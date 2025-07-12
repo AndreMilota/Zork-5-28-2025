@@ -1,11 +1,11 @@
 # ----------------------------- nodes -----------------------------
-from core import llm
+from core import core_llm
 from tools import TOOLS
 from state import GameState
 from data import ROOMS
 from langgraph.types import Command, interrupt
 
-llm_with_tools = llm.bind_tools(TOOLS)
+llm_with_tools = core_llm.bind_tools(TOOLS)
 
 def summarize_room(state: GameState):
     """Return a short narration of the current room."""
@@ -25,7 +25,7 @@ def summarize_room(state: GameState):
             ),
         },
     ]
-    resp = llm.invoke(prompt)
+    resp = core_llm.invoke(prompt)
     return {"messages": [resp], "need_summary": False}
 
 def ask_for_action(state: GameState):

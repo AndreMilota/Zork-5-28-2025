@@ -1,6 +1,6 @@
 # import the adventure Python module
 
-from core import llm
+from core import core_llm
 from engine import GameEngine
 
 def evaluate_response(response: str, characteristics: str) -> bool:
@@ -25,7 +25,7 @@ def evaluate_response(response: str, characteristics: str) -> bool:
     ]
 
     # Call the LLM (core.llm handles provider)
-    result = llm.invoke(messages)
+    result = core_llm.invoke(messages)
 
     # Normalize and parse the response
     answer = result.content.strip().lower()
