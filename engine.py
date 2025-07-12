@@ -31,7 +31,7 @@ class GameEngine:
         else:
             command = Command(update=self.state, resume=user_input)
 
-        stream = self.graph.stream(command, self.config, stream_mode="values", debug=True)
+        stream = self.graph.stream(command, self.config, stream_mode="values", debug=False)
 
         collected_outputs = []
         for event in stream:
