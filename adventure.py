@@ -72,7 +72,7 @@ def summarize_room(state: GameState):
             ),
         },
     ]
-    resp = core.llm.invoke(prompt)
+    resp = core.core_llm.invoke(prompt)
     return {"messages": [resp], "need_summary": False}
 
 
@@ -190,7 +190,7 @@ def move_room(
     )
 
 TOOLS = [move_room, send_to_player, modify_room_description, modify_player_description]
-llm_with_tools = core.llm.bind_tools(TOOLS)
+llm_with_tools = core.core_llm.bind_tools(TOOLS)
 
 def interpret_action(state: GameState):
     """Use the LLM to respond to the player and call tools if needed."""

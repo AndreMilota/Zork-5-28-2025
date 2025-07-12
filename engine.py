@@ -7,7 +7,7 @@ from langchain_core.messages import ToolMessage
 from data import player_description, ROOMS
 
 class GameEngine:
-    def __init__(self, graph=None, default_player_description=None, start_room="hall"):
+    def __init__(self, graph=None, default_player_description=None, start_room="hall", model_name=None):
         if graph is None:
             self.graph = build_graph()
         else:
@@ -31,7 +31,7 @@ class GameEngine:
         else:
             command = Command(update=self.state, resume=user_input)
 
-        stream = self.graph.stream(command, self.config, stream_mode="values", debug=True)
+        stream = self.graph.stream(command, self.config, stream_mode="values", debug=False)
 
         collected_outputs = []
         for event in stream:

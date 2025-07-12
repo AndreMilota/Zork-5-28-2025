@@ -30,7 +30,7 @@ graph_builder = StateGraph(State)
 #llm = init_chat_model("anthropic:claude-3-5-sonnet-latest")
 
 def chatbot(state: State):
-    return {"messages": [core.llm.invoke(state["messages"])]}
+    return {"messages": [core.core_llm.invoke(state["messages"])]}
 
 
 # The first argument is the unique node name

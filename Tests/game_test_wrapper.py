@@ -1,4 +1,4 @@
-from core import llm
+from core import core_llm
 from engine import GameEngine
 
 def evaluate_response(response: str, characteristics: str) -> bool:
@@ -23,7 +23,7 @@ def evaluate_response(response: str, characteristics: str) -> bool:
     ]
 
     # Call the LLM (core.llm handles provider)
-    result = llm.invoke(messages)
+    result = core_llm.invoke(messages)
 
     # Normalize and parse the response
     answer = result.content.strip().lower()
@@ -36,8 +36,8 @@ class Wrapped_Game_Engine(GameEngine):
     It allows for controlled input and output during tests.
     """
 
-    def __init__(self, graph=None, player_description=None, start_room="hall"):
-        super().__init__(graph, player_description, start_room=start_room)
+    def __init__(self, graph=None, player_description=None, start_room="hall", model_name=None):
+        super().__init__(graph, player_description, start_room=start_room, model_name=model_name)
         # run the initial setup
         self.last_response = None
         self.last_input = None
@@ -97,3 +97,11 @@ class Wrapped_Game_Engine(GameEngine):
         else:
             print("All tests passed successfully!")
 
+    def check_room(self, room_name: str)-> bool:
+        """
+        Check if the current room matches the expected room name.
+        """
+        if self.state["current_room"] != room_name:
+            print(f"TEST FAILED: Expected room '{room_name}', but got '{self.state['current_room']}'")
+            return False
+        return True
