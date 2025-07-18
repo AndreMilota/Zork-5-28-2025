@@ -13,7 +13,8 @@ def test_1():
     engine.step("draw a pentagram in the dust on the mirror")
     engine.print()
     engine.step("go east")
-    engine.check_room("kitchen")
+    if not engine.check_room("kitchen"):
+        raise ValueError("Failed to move to the kitchen.")
     engine.print()
     engine.step("go west")
     engine.print()
