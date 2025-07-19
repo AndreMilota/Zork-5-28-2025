@@ -105,6 +105,8 @@ def move_room(
 
     # Start from a copy, but you don't need to modify `state` directly
     update = dict(state)
+    print("Moving from", state["current_room"], "to", new_room)
+
     update.update({
         "current_room": new_room,
         "messages": [msg, clear],

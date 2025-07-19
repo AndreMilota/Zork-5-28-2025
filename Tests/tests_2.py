@@ -22,7 +22,20 @@ def test_1():
     engine.print()
     engine.check("mentions a pentagram")
 
+# test that just looks at the mirror
+def test_look_at_mirror():
+    """
+    Test the Wrapped_Game_Engine by looking at the mirror.
+    """
+    engine = Wrapped_Game_Engine()
+    engine.step()
+    engine.print()
+    engine.step("look at the mirror")
+    engine.print()
+    if not engine.check("mentions a pentagram"):
+        raise ValueError("Failed to mention the pentagram in the mirror.")
+
 if __name__ == "__main__":
     # Run the test
-    test_1()
+    test_look_at_mirror()
     print("Test 1 passed successfully.")
