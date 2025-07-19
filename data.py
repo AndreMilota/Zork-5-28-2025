@@ -10,6 +10,7 @@ ROOMS: Dict[str, Dict] = {
             "with ghostly faces. A heavy oak door, its iron handle worn smooth, "
             "leads east."
             "There is a very dusty floor to ceiling mirror on one side which will allow someone to see a reflection of themselves."
+            "There is a golden crown on the floor."
         ),
         "exits": {"east": "kitchen"},
     },

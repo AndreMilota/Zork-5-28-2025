@@ -105,3 +105,14 @@ class Wrapped_Game_Engine(GameEngine):
             print(f"TEST FAILED: Expected room '{room_name}', but got '{self.state['current_room']}'")
             return False
         return True
+
+    def search_user_description(self, item_name: str) -> bool:
+        """
+        Check if the specified item is in the player's inventory.
+        """
+        # see if the word in in the player description
+        if item_name not in self.state["player_description"]:
+            print(f"TEST FAILED: Expected item '{item_name}' in player description, but it was not found.")
+            return False
+
+        return True

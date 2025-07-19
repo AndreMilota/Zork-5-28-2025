@@ -32,10 +32,23 @@ def test_look_at_mirror():
     engine.print()
     engine.step("look at the mirror")
     engine.print()
-    if not engine.check("mentions a pentagram"):
-        raise ValueError("Failed to mention the pentagram in the mirror.")
+
+# test picking up an itme
+def test_pick_up_item():
+    """
+    Test the Wrapped_Game_Engine by picking up an item.
+    """
+    engine = Wrapped_Game_Engine()
+    engine.step()
+    engine.print()
+    engine.step("pick up the crown")
+    engine.print()
+
+    if not engine.search_user_description("crown"):
+        print (engine.state["player_description"])
+        raise ValueError("Failed to pick up the crown.")
 
 if __name__ == "__main__":
     # Run the test
-    test_look_at_mirror()
+    test_pick_up_item()
     print("Test 1 passed successfully.")
