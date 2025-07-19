@@ -39,6 +39,7 @@ def modify_room_description(
         Use this when the player changes something about the room (e.g., breaks an object, adds markings, takes or leaves items).
         The new description should describe the room's current state completely and consistently.
         """
+    print("calling modify_room_description with new_description:", new_description)
     room = state["current_room"]
     ROOMS[room]["description"] = new_description
     return Command(
@@ -64,6 +65,7 @@ def modify_player_description(
         Use this when the player's state changes (e.g., puts on clothing, is injured, picks up or loses an item that affects their appearance).
         The description should be complete and consistent.
         """
+    print("calling modify_player_description with new_description:", new_description)
     return Command(
         update={
             "player_description": new_description,

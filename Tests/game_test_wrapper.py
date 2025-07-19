@@ -29,6 +29,34 @@ def evaluate_response(response: str, characteristics: str) -> bool:
     answer = result.content.strip().lower()
     return answer.startswith("yes")
 
+def compare(text1 : str, text2: str) -> bool:
+    """
+    Compare two strings for equality, ignoring case and whitespace.
+    """
+    messages = [
+        {"role": "system", "content": "You are an expert evaluator for a text adventure game."},
+        {"role": "user", "content": (
+            f"You are given 2 texts which describe an item or have an item description in them and you need to check for consistency:\n\n"
+            f"and oun need to answer 3 questions and return yes or no for each with with a space between them:\n\n"
+            f"1. Are the descriptions Consistent That is to say there are no inconsistent details given.\n\n"
+            f"2. Are there details in the first description that are omitted from the second description .\n\n"
+            f"3. Are there details in the second description that are omitted from the first description.\n\n"
+            "The first text is:\n\n"
+            f"{text1}\n\n"
+            "The second text is:\n\n"
+            f"{text2}\n\n"
+        )}
+    ]
+
+    # Call the LLM (core.llm handles provider)
+    result = core_llm.invoke(messages)
+
+    #return it as a list ofbooleans
+    answer = result.content.strip().lower()
+    answers = answer.split()
+    if len(answers) != 3:
+        raise ValueError("The response should contain exactly 3 answers separated by spaces.")
+    return [ans.startswith("yes") for ans in answers]
 
 class Wrapped_Game_Engine(GameEngine):
     """
@@ -51,6 +79,7 @@ class Wrapped_Game_Engine(GameEngine):
         Process one turn of the game with optional user input.
         Returns the status and response text.
         """
+        print ("step: " + str(user_input))
         self.last_input = user_input
         status, response = super().process_turn(user_input)
         self.last_response = response

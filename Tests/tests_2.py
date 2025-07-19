@@ -48,7 +48,25 @@ def test_pick_up_item():
         print (engine.state["player_description"])
         raise ValueError("Failed to pick up the crown.")
 
+def test_retained_made_up_details():
+    """
+    Test the Wrapped_Game_Engine to ensure made-up details are retained.
+    """
+    engine = Wrapped_Game_Engine()
+    engine.step()
+    engine.print()
+    engine.step("tell me more about the crown how many points doe it have what gems does it have etc")
+    engine.print()
+    engine.step("go east")
+    if not engine.check_room("kitchen"):
+        raise ValueError("Failed to move to the kitchen.")
+    engine.print()
+    engine.step("go west")
+    engine.print()
+    engine.step("tell me more about the crown how many points doe it have what gems does it have etc")
+    engine.print()
+
 if __name__ == "__main__":
     # Run the test
-    test_pick_up_item()
-    print("Test 1 passed successfully.")
+    test_retained_made_up_details()
+    print("test_retained_made_up_details.")
