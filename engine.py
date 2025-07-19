@@ -38,9 +38,20 @@ class GameEngine:
             if "messages" in event:
                 temp = self._handle_messages(event["messages"])
                 collected_outputs += temp
+            if "current_room" in event:
+                self.state.update({"current_room": event["current_room"]})
+            if "need_summary" in event:
+                self.state.update({"need_summary": event["need_summary"]})
             if "state" in event:
                 self.state.update(event["state"])
+            if "player_description" in event:
+                self.state.update({"player_description": event["player_description"]})
             if "__interrupt__" in event:
+                # if collected_outputs is a list then join elements with commas else return collected_outputs
+                if isinstance(collected_outputs, list):
+                    collected_outputs = [str(x) for x in collected_outputs]
+                else:
+                    collected_outputs = [collected_outputs]
                 return "__WAITING_FOR_INPUT__", "\n".join(collected_outputs + [event["__interrupt__"][0].value])
         return "__TURN_COMPLETE__", "\n".join(collected_outputs)
 

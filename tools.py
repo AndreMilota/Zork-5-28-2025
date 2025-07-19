@@ -84,6 +84,7 @@ def move_room(
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """Move to an adjacent room in the given direction."""
+
     exits = ROOMS[state["current_room"]]["exits"]
     norm_direction = direction.lower()
 
@@ -95,7 +96,6 @@ def move_room(
         )
 
     new_room = exits[norm_direction]
-    state["current_room"] = new_room
     msg = ToolMessage(
         "MOVED",
         tool_call_id=tool_call_id,
@@ -103,10 +103,15 @@ def move_room(
     )
     clear = RemoveMessage(id=REMOVE_ALL_MESSAGES)
 
-    update = dict(state)  # copy all current state
-    update["current_room"] = new_room
-    update["messages"] = [msg, clear]
-    update["need_summary"] = True
+    # Start from a copy, but you don't need to modify `state` directly
+    update = dict(state)
+    print("Moving from", state["current_room"], "to", new_room)
+
+    update.update({
+        "current_room": new_room,
+        "messages": [msg, clear],
+        "need_summary": True,
+    })
 
     return Command(update=update)
 
