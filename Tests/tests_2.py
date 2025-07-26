@@ -1,6 +1,7 @@
 # this uses the new game_test_wrapper
 
 from game_test_wrapper import Wrapped_Game_Engine
+from game_test_wrapper import compare
 
 def test_1():
     """
@@ -57,6 +58,8 @@ def test_retained_made_up_details():
     engine.print()
     engine.step("tell me more about the crown how many points doe it have what gems does it have etc")
     engine.print()
+    # save a deep copy of the last response
+    first_response = engine.last_response
     engine.step("go east")
     if not engine.check_room("kitchen"):
         raise ValueError("Failed to move to the kitchen.")
@@ -65,6 +68,12 @@ def test_retained_made_up_details():
     engine.print()
     engine.step("tell me more about the crown how many points doe it have what gems does it have etc")
     engine.print()
+    ok, diff1, diff2 = compare(first_response, engine.last_response)
+    if not ok:
+        print("The made-up details were not retained correctly.")
+        print("First response:", first_response)
+        print("Second response:", engine.last_response)
+        raise ValueError("Made-up details were not retained correctly.")
 
 if __name__ == "__main__":
     # Run the test
