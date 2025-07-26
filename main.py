@@ -7,9 +7,10 @@ def play():
     while True:
         status, text = engine.process_turn(user_input)
         if text:
-            print(text)
+            print(text, end="")
         if status == "__WAITING_FOR_INPUT__":
             user_input = input()
+            print()
             if user_input.lower() in {"quit", "exit", "q"}:
                 print("Goodbye!")
                 break
