@@ -29,7 +29,7 @@ def evaluate_response(response: str, characteristics: str) -> bool:
     answer = result.content.strip().lower()
     return answer.startswith("yes")
 
-def compare(text1 : str, text2: str) -> bool:
+def compare(text1 : str, text2: str) -> list[bool]:
     """
     Compare two strings for equality, ignoring case and whitespace.
     """
@@ -37,14 +37,16 @@ def compare(text1 : str, text2: str) -> bool:
         {"role": "system", "content": "You are an expert evaluator for a text adventure game."},
         {"role": "user", "content": (
             f"You are given 2 texts which describe an item or have an item description in them and you need to check for consistency:\n\n"
-            f"and oun need to answer 3 questions and return yes or no for each with with a space between them:\n\n"
-            f"1. Are the descriptions Consistent That is to say there are no inconsistent details given.\n\n"
+            f"and only need to answer 3 questions and return yes or no for each with with a space between them:\n\n"
+            f"1. Are the descriptions consistent, that is to say they do not have inconsistent.\n\n"
             f"2. Are there details in the first description that are omitted from the second description .\n\n"
             f"3. Are there details in the second description that are omitted from the first description.\n\n"
             "The first text is:\n\n"
             f"{text1}\n\n"
             "The second text is:\n\n"
             f"{text2}\n\n"
+            "You must just answer with 'yes' or 'no' for each question, separated by spaces. For example: 'yes no yes'.\n"
+            "And you should not say anything else, just something like 'yes no yes' or 'no no no' .etc"
         )}
     ]
 
@@ -53,6 +55,7 @@ def compare(text1 : str, text2: str) -> bool:
 
     #return it as a list ofbooleans
     answer = result.content.strip().lower()
+    print(f"compare response: {answer}")
     answers = answer.split()
     if len(answers) != 3:
         raise ValueError("The response should contain exactly 3 answers separated by spaces.")
