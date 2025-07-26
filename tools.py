@@ -39,7 +39,7 @@ def modify_room_description(
         Use this when the player changes something about the room (e.g., breaks an object, adds markings, takes or leaves items).
         The new description should describe the room's current state completely and consistently.
         """
-    print("calling modify_room_description with new_description:", new_description)
+    #print("calling modify_room_description with new_description:", new_description)
     room = state["current_room"]
     ROOMS[room]["description"] = new_description
     return Command(

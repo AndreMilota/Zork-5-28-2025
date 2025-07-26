@@ -8,9 +8,8 @@ def play():
         status, text = engine.process_turn(user_input)
         if text:
             print(text)
-            print()
         if status == "__WAITING_FOR_INPUT__":
-            user_input = input("> ")
+            user_input = input()
             if user_input.lower() in {"quit", "exit", "q"}:
                 print("Goodbye!")
                 break
