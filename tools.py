@@ -17,6 +17,7 @@ def send_to_player(
     tool_call_id: Annotated[str, InjectedToolCallId],
 ) -> Command:
     """Send text to the player as narration or description."""
+    # print("send_to_player()")
     return Command(
         update={
             "messages": [
@@ -34,11 +35,14 @@ def modify_room_description(
     new_description: str,
     state: Annotated[GameState, InjectedState],
     tool_call_id: Annotated[str, InjectedToolCallId], ) -> Command:
-    """Replace the current room's description with a new one reflecting any changes in the environment.
+    """
+    Replace the current room's description with a new one reflecting any changes in the environment.
 
-        Use this when the player changes something about the room (e.g., breaks an object, adds markings, takes or leaves items).
-        The new description should describe the room's current state completely and consistently.
-        """
+    Use this when the player changes something about the room (e.g., breaks an object, adds markings, takes or leaves items).
+    The new description should describe the room's current state completely and consistently.
+    """
+    # print("modify_room_description()")
+    #print("calling modify_room_description with new_description:", new_description)
     room = state["current_room"]
     ROOMS[room]["description"] = new_description
     return Command(
@@ -59,11 +63,13 @@ def modify_player_description(
     new_description: str,
     state: Annotated[GameState, InjectedState],
     tool_call_id: Annotated[str, InjectedToolCallId],) -> Command:
-    """Replace the current description of the player with a new one reflecting any changes to their appearance, health, or possessions.
+    """
+    Replace the current description of the player with a new one reflecting any changes to their appearance, health, or possessions.
 
-        Use this when the player's state changes (e.g., puts on clothing, is injured, picks up or loses an item that affects their appearance).
-        The description should be complete and consistent.
-        """
+    Use this when the player's state changes (e.g., puts on clothing, is injured, picks up or loses an item that affects their appearance).
+    The description should be complete and consistent.
+    """
+    # print("calling modify_player_description with new_description:", new_description)
     return Command(
         update={
             "player_description": new_description,
@@ -105,7 +111,7 @@ def move_room(
 
     # Start from a copy, but you don't need to modify `state` directly
     update = dict(state)
-    print("Moving from", state["current_room"], "to", new_room)
+    # print("Moving from", state["current_room"], "to", new_room)
 
     update.update({
         "current_room": new_room,

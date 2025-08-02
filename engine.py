@@ -52,7 +52,8 @@ class GameEngine:
                     collected_outputs = [str(x) for x in collected_outputs]
                 else:
                     collected_outputs = [collected_outputs]
-                return "__WAITING_FOR_INPUT__", "\n".join(collected_outputs + [event["__interrupt__"][0].value])
+                angle_bracket_prompt = event["__interrupt__"][0].value
+                return "__WAITING_FOR_INPUT__", "\n".join(collected_outputs + [angle_bracket_prompt])
         return "__TURN_COMPLETE__", "\n".join(collected_outputs)
 
     def _handle_messages(self, messages):

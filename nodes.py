@@ -53,6 +53,8 @@ def interpret_action(state: GameState):
             "When the player does something that affects themselves (e.g. gets injured, puts on a hat), "
             "call modify_player_description or send_to_player as appropriate.\n"
             "When the player does something that changes the environment, call modify_room_description.\n"
+            "If the player picks up or drops an item, "
+            "you will have to call both modify_player_description and modify_room_description.\n"
             "If asked about an unspecified detail, choose one, update the state, and narrate the result."
             ),
     }
